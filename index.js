@@ -34,7 +34,7 @@ async function run() {
     const userCollection = client.db("Ismaqw").collection("users");
 
     app.get('/users-my', async (req, res) => {
-      const users = await userCollection.find({}).toArray();
+      const users = await userCollection.find({}).sort({ timestamp: -1 }).toArray();
       res.send(users); 
   });
 
