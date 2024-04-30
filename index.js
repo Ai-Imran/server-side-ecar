@@ -32,6 +32,8 @@ async function run() {
     // Send a ping to confirm a successful connection
 
     const userCollection = client.db("Ismaqw").collection("users");
+    const orderCollection = client.db("Ismaqw").collection("orders");
+    const problemsCollection = client.db("Ismaqw").collection("problems");
 
     app.get('/users-my', async (req, res) => {
       const users = await userCollection.find({}).sort({ timestamp: -1 }).toArray();
@@ -51,6 +53,31 @@ async function run() {
       const user = await userCollection.findOne({ name: userName });
       res.send(user); 
   });
+
+  // order related 
+  app.get('/users-orders', async (req, res) => {
+    const orders = await orderCollection.find({}).sort({ timestamp: -1 }).toArray();
+    res.send(orders); 
+});
+
+
+app.post('/users-orders', async (req, res) => {
+    const order = req.body;
+    const result = await orderCollection.insertOne(order);
+    res.send(result); // Return the inserted user
+});
+  
+  // problems related 
+  app.get('/users-problems', async (req, res) => {
+    const orders = await problemsCollection.find({}).sort({ timestamp: -1 }).toArray();
+    res.send(orders); 
+});
+
+app.post('/users-problems', async (req, res) => {
+    const order = req.body;
+    const result = await problemsCollection.insertOne(order);
+    res.send(result); // Return the inserted user
+});
   
   
 
