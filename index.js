@@ -34,6 +34,7 @@ async function run() {
     const userCollection = client.db("Ismaqw").collection("users");
     const orderCollection = client.db("Ismaqw").collection("orders");
     const problemsCollection = client.db("Ismaqw").collection("problems");
+    const userPostCollection = client.db("Ismaqw").collection("posts");
 
     app.get('/users-my', async (req, res) => {
       const users = await userCollection.find({}).sort({ timestamp: -1 }).toArray();
@@ -78,6 +79,19 @@ app.post('/users-problems', async (req, res) => {
     const result = await problemsCollection.insertOne(order);
     res.send(result); // Return the inserted user
 });
+
+// user post get
+    app.get('/all-user-post', async (req, res) => {
+      const users = await userPostCollection.find({}).sort({ timestamp: -1 }).toArray();
+      res.send(users); 
+  });
+
+  //   user POST
+  app.post('/all-user-post', async (req, res) => {
+      const newUser = req.body;
+      const result = await userPostCollection.insertOne(newUser);
+      res.send(result); // Return the inserted user
+  });
   
   
 
