@@ -13,7 +13,7 @@ app.use(express.json())
 
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = "mongodb+srv://smaqwall:I6KLNoSVPBGA40mh@cluster0.hucmw0w.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -54,6 +54,37 @@ async function run() {
       const user = await userCollection.findOne({ name: userName });
       res.send(user); 
   });
+
+  app.patch('/users-my/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const { role } = req.body; // Extract role from request body
+        const filter = { _id: new ObjectId(id) };
+        const updatedDoc = {
+            $set: {
+                role: role // Set role based on request body
+            }
+        };
+
+        const result = await userCollection.updateOne(filter, updatedDoc);
+        if (result.modifiedCount === 0) {
+            return res.status(404).json({ error: 'User not found or role unchanged' });
+        }
+
+        res.status(200).json({ message: 'User role updated successfully' });
+    } catch (error) {
+        console.error('Error updating user role:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
+  app.delete('/users-my/:id', async (req, res) => {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) }
+    const result = await userCollection.deleteOne(query);
+    res.send(result);
+  })
 
   // order related 
   app.get('/users-orders', async (req, res) => {
