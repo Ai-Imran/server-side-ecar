@@ -126,6 +126,24 @@ app.post('/users-orders', async (req, res) => {
     const result = await orderCollection.insertOne(order);
     res.send(result); // Return the inserted user
 });
+
+// Add this code after the existing routes
+
+// GET orders by phone number
+app.get('/users-orders/:phoneNumber', async (req, res) => {
+  const phoneNumber = req.params.phoneNumber;
+  const orders = await orderCollection.find({ phoneNumber }).sort({ timestamp: -1 }).toArray();
+  res.send(orders); 
+});
+
+// DELETE an order by ID
+app.delete('/users-orders/:id', async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) }
+  const result = await orderCollection.deleteOne(query);
+  res.send(result);
+});
+
   
   // problems related 
   app.get('/users-problems', async (req, res) => {
@@ -139,6 +157,23 @@ app.post('/users-problems', async (req, res) => {
     res.send(result); // Return the inserted user
 });
 
+app.get('/users-problems', async (req, res) => {
+  const { name } = req.query;
+  let query = {};
+  if (name) {
+      query = { name: { $regex: name, $options: 'i' } }; // Case-insensitive search
+  }
+  const problems = await problemsCollection.find(query).sort({ timestamp: -1 }).toArray();
+  res.send(problems);
+});
+
+// Delete a problem by ID
+app.delete('/users-problems/:id', async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await problemsCollection.deleteOne(query);
+  res.send(result);
+});
 // user post get
     app.get('/all-user-post', async (req, res) => {
       const users = await userPostCollection.find({}).sort({ timestamp: -1 }).toArray();
