@@ -187,7 +187,34 @@ app.delete('/users-problems/:id', async (req, res) => {
       res.send(result); // Return the inserted user
   });
   
-  
+  // Search user posts by name
+// Modify the endpoint to handle both searching and fetching all posts
+app.get('/all-user-posts', async (req, res) => {
+  const { name } = req.query;
+  let query = {};
+  if (name) {
+      query = { userName: { $regex: name, $options: 'i' } }; // Case-insensitive search
+  }
+  const posts = await userPostCollection.find(query).sort({ timestamp: -1 }).toArray();
+  res.send(posts);
+});
+
+
+// Delete user post by ID
+app.delete('/all-user-post/:id', async (req, res) => {
+  const id = req.params.id;
+  try {
+      const result = await userPostCollection.deleteOne({ _id: new ObjectId(id) });
+      if (result.deletedCount === 0) {
+          res.status(404).send({ message: 'User post not found' });
+      } else {
+          res.send({ message: 'User post deleted successfully' });
+      }
+  } catch (error) {
+      res.status(500).send({ message: 'Error deleting user post' });
+  }
+});
+
 
 
     await client.db("admin").command({ ping: 1 });
