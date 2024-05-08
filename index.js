@@ -36,6 +36,7 @@ async function run() {
     const orderCollection = client.db("Ismaqw").collection("orders");
     const problemsCollection = client.db("Ismaqw").collection("problems");
     const userPostCollection = client.db("Ismaqw").collection("posts");
+    const TotalRevenueCollection = client.db("Ismaqw").collection("revenue");
 
     //  const verifyToken = (req, res, next) => {
     //   // console.log('inside verify token', req.headers.authorization);
@@ -214,6 +215,76 @@ app.delete('/all-user-post/:id', async (req, res) => {
       res.status(500).send({ message: 'Error deleting user post' });
   }
 });
+
+// Assuming you have an Express server set up
+
+// POST endpoint to add money
+app.post('/add-money', async (req, res) => {
+  try {
+      const { amount } = req.body;
+      // Validate amount
+      if (!amount || isNaN(amount) ) {
+          return res.status(400).json({ message: 'Invalid amount' });
+      }
+      const currentDate = new Date();
+      // Insert money into revenue collection with current date
+      const result = await TotalRevenueCollection.insertOne({ amount: parseFloat(amount), timestamp: currentDate });
+      res.json({ message: 'Money added successfully', insertedId: result.insertedId, date: currentDate });
+  } catch (error) {
+      console.error('Error adding money:', error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// GET endpoint to retrieve the list of adding money
+app.get('/adding-money-list', async (req, res) => {
+  try {
+      const addingMoneyList = await TotalRevenueCollection.find({}).sort({ timestamp: -1 }).toArray();
+      res.json(addingMoneyList);
+  } catch (error) {
+      console.error('Error retrieving adding money list:', error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Add this route to handle DELETE requests for deleting items from the adding money list
+app.delete('/adding-money-list/:id', async (req, res) => {
+  try {
+      const id = req.params.id;
+      // Delete the item from the adding money list collection based on the provided ID
+      const result = await TotalRevenueCollection.deleteOne({ _id: new ObjectId(id) });
+      if (result.deletedCount === 1) {
+          res.status(200).json({ message: 'Item deleted successfully' });
+      } else {
+          res.status(404).json({ message: 'Item not found' });
+      }
+  } catch (error) {
+      console.error('Error deleting item:', error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// GET endpoint to retrieve the total revenue
+app.get('/total-revenue', async (req, res) => {
+  try {
+      // Aggregate the total revenue from the TotalRevenueCollection
+      const totalRevenue = await TotalRevenueCollection.aggregate([
+          {
+              $group: {
+                  _id: null,
+                  totalRevenue: { $sum: "$amount" }
+              }
+          }
+      ]).toArray();
+
+      // Send the total revenue as response
+      res.json({ totalRevenue: totalRevenue.length > 0 ? totalRevenue[0].totalRevenue : 0 });
+  } catch (error) {
+      console.error('Error retrieving total revenue:', error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 
 
 
